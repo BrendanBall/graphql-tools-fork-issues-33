@@ -4,7 +4,7 @@ import {
   mergeSchemas,
   delegateToSchema
 } from 'graphql-tools-fork'
-import { graphql } from 'graphql'
+import { graphql, GraphQLList } from 'graphql'
 import DataLoader from 'dataloader'
 
 const taskSchema = makeExecutableSchema({
@@ -81,8 +81,8 @@ export const schema = mergeSchemas({
 
 function dataloaders () {
   return {
-    users: new DataLoader(async (keys) =>
-      delegateToSchema({
+    users: new DataLoader(async keys => {
+      const result = await delegateToSchema({
         schema: userSchema,
         operation: 'query',
         fieldName: 'usersByIds',
@@ -90,8 +90,14 @@ function dataloaders () {
           ids: keys.map(k => k.id)
         },
         context: null,
-        info: keys[0].info
-      }))
+        info: {
+          ...keys[0].info,
+          returnType: new GraphQLList(keys[0].info.returnType) // magic happening here
+        }
+      })
+      console.log(result) // in v8.2.2 shows results instead of promises to results
+      return [...result.slice(0, keys.length)] // necessary only in this example because mocking does not return the correct result length.
+    })
   }
 }
 
