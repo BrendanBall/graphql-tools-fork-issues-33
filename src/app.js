@@ -95,6 +95,7 @@ function dataloaders () {
           returnType: new GraphQLList(keys[0].info.returnType) // magic happening here
         }
       })
+      console.log(result) // in v8.2.2 shows results instead of promises to results
       return [...result.slice(0, keys.length)] // necessary only in this example because mocking does not return the correct result length.
     })
   }
